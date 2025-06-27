@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa pamiatok</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <main>
+    <h1>Pamiatky na trase</h1>
+    <ul id="landmark-list"></ul>
+    <p id="error-message" style="display: none;"></p>
+    <a href="welcome.html">Späť</a>
+  </main>
+
+  <script type="module">
+    import { fetchLandmarks } from "../js/map.js";
+    import { showError, clearError } from "../js/utils.js";
+
+    const list = document.getElementById("landmark-list");
+    const errorMessage = document.getElementById("error-message");
+
+    async function loadLandmarks() {
+      clearError(errorMessage);
+
+      try {
+        const landmarks = await fetchLandmarks();
+        list.innerHTML = "";
+
+        landmarks.forEach(landmark => {
+          const li = document.createElement("li");
+          li.textContent = `${landmark.name} (${landmark.typ}) – ${landmark.latitude}, ${landmark.longitude}`;
+          list.appendChild(li);
+        });
+
+      } catch (err) {
+        showError(errorMessage, err.message);
+      }
+    }
+
+    loadLandmarks();
+  </script>
+</body>
+</html>

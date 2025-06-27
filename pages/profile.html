@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Môj profil</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <main>
+    <h1>Môj profil</h1>
+
+    <ul id="profile-data">
+      <li><strong>E-mail:</strong> <span id="email"></span></li>
+      <li><strong>Meno:</strong> <span id="full_name"></span></li>
+      <li><strong>Body:</strong> <span id="points"></span></li>
+    </ul>
+
+    <p id="error-message" style="display: none;"></p>
+    <a href="welcome.html">Späť</a>
+  </main>
+
+  <script type="module">
+    import { API_URL } from "../js/config.js";
+    import { getToken, logout } from "../js/auth.js";
+    import { showError } from "../js/utils.js";
+
+    const emailEl = document.getElementById("email");
+    const fullNameEl = document.getElementById("full_name");
+    const pointsEl = document.getElementById("points");
+    const errorMessage = document.getElementById("error-message");
+
+    async function loadProfile() {
+      try {
+        const response = await fetch(`${API_URL}/users/me`, {
+          headers: {
+            "Authorization": `Bearer ${getToken()}`
+          }
+        });
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Nepodarilo sa načítať profil.");
+        }
+
+        const user = await response.json();
+        emailEl.textContent = user.email;
+        fullNameEl.textContent = user.full_name || "Nezadané";
+        pointsEl.textContent = user.points;
+
+      } catch (err) {
+        showError(errorMessage, err.message);
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

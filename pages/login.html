@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prihlásenie</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <main>
+    <h1>Prihlásenie</h1>
+
+    <form id="login-form">
+      <label for="email">E-mail:</label><br />
+      <input type="email" id="email" name="email" required /><br /><br />
+
+      <label for="password">Heslo:</label><br />
+      <input type="password" id="password" name="password" required /><br /><br />
+
+      <button type="submit">Prihlásiť sa</button>
+    </form>
+
+    <p id="error-message" style="display: none;"></p>
+    <p>Nemáš účet? <a href="register.html">Registruj sa</a></p>
+  </main>
+
+  <script type="module">
+    import { loginUser } from "../js/auth.js";
+    import { showError, clearError } from "../js/utils.js";
+
+    const form = document.getElementById("login-form");
+    const errorMessage = document.getElementById("error-message");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearError(errorMessage);
+
+      const email = form.email.value;
+      const password = form.password.value;
+
+      try {
+        await loginUser(email, password);
+        window.location.href = "welcome.html"; // po prihlásení presmeruj
+      } catch (err) {
+        showError(errorMessage, err.message);
+      }
+    });
+  </script>
+</body>
+</html>
