@@ -47,12 +47,15 @@
       try {
         const response = await fetch(`${API_URL}/auth/register`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-          throw new Error("Registrácia zlyhala");
+          const errorData = await response.json(); // zobrazi detailnú chybu ak je
+          throw new Error(errorData.detail || "Registrácia zlyhala");
         }
 
         alert("Registrácia bola úspešná. Môžete sa prihlásiť.");
