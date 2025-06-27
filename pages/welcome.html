@@ -3,63 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registrácia</title>
+  <title>Vitaj pútnik</title>
   <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
   <main>
-    <h1>Registrácia</h1>
+    <h1>Vitaj, pútnik!</h1>
 
-    <form id="register-form">
-      <label for="email">E-mail:</label><br />
-      <input type="email" id="email" name="email" required /><br /><br />
+    <p>Si prihlásený v aplikácii ViaSanctiMartini.</p>
 
-      <label for="password">Heslo:</label><br />
-      <input type="password" id="password" name="password" required /><br /><br />
-
-      <label for="full_name">Celé meno:</label><br />
-      <input type="text" id="full_name" name="full_name" /><br /><br />
-
-      <button type="submit">Zaregistrovať sa</button>
-    </form>
-
-    <p id="error-message" style="display: none;"></p>
-    <p>Už máš účet? <a href="login.html">Prihlás sa</a></p>
+    <nav>
+      <ul>
+        <li><a href="map.html">Zobraziť trasu</a></li>
+        <li><a href="profile.html">Môj profil</a></li>
+        <li><a href="#" id="logout-btn">Odhlásiť sa</a></li>
+      </ul>
+    </nav>
   </main>
 
   <script type="module">
-    import { API_URL } from "../js/config.js";
-    import { showError, clearError } from "../js/utils.js";
+    import { logout, isLoggedIn } from "../js/utils.js";
 
-    const form = document.getElementById("register-form");
-    const errorMessage = document.getElementById("error-message");
+    if (!isLoggedIn()) {
+      console.warn("Nie si prihlásený – presmerujem na login.");
+      window.location.href = "login.html";
+    }
 
-    form.addEventListener("submit", async (e) => {
+    document.getElementById("logout-btn").addEventListener("click", (e) => {
       e.preventDefault();
-      clearError(errorMessage);
-
-      const payload = {
-        email: form.email.value,
-        password: form.password.value,
-        full_name: form.full_name.value || null
-      };
-
-      try {
-        const response = await fetch(`${API_URL}/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          throw new Error("Registrácia zlyhala");
-        }
-
-        alert("Registrácia bola úspešná. Môžete sa prihlásiť.");
-        window.location.href = "login.html";
-      } catch (err) {
-        showError(errorMessage, err.message);
-      }
+      logout();
     });
   </script>
 </body>
