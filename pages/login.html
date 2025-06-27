@@ -40,9 +40,10 @@
 
       try {
         await loginUser(email, password);
-        window.location.href = "welcome.html"; // po prihlásení presmeruj
+        window.location.href = "welcome.html";  // 🔁 ak welcome.html je v pages/
       } catch (err) {
         showError(errorMessage, err.message);
+        console.error("Chyba pri prihlásení:", err);
       }
     });
   </script>
