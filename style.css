@@ -1,6 +1,18 @@
-body {
-  font-family: sans-serif;
-  padding: 2rem;
-  background: #f2f2f2;
-  color: #333;
+.button {
+  display: inline-block;
+  background-color: #4CAF50;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  margin: 0.5rem;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.button:hover {
+  background-color: #388E3C;
+}
+
+.cta-buttons {
+  margin-top: 2rem;
 }
