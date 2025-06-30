@@ -9,17 +9,20 @@ export async function fetchLandmarks() {
   const token = getToken();
   console.log("🔐 Token pre landmarks:", token);
 
-  const response = await fetch(`${API_URL}/landmarks`, {
+  const response = await fetch(`${API_URL}/landmarks/`, {
     headers: {
       "Authorization": `Bearer ${token}`
     }
   });
 
   if (!response.ok) {
+    console.error("❌ Chyba z backendu:", response.status, response.statusText);
     throw new Error("Nepodarilo sa načítať pamiatky.");
   }
 
-  return await response.json();
+  const data = await response.json();
+  console.log("📦 Načítané pamiatky:", data);
+  return data;
 }
 
 /**
@@ -30,7 +33,7 @@ export async function fetchRoutes() {
   const token = getToken();
   console.log("🔐 Token pre routes:", token);
 
-  const response = await fetch(`${API_URL}/routes`, {
+  const response = await fetch(`${API_URL}/routes/`, {   // ← Dôležitá lomka na konci
     headers: {
       "Authorization": `Bearer ${token}`
     }
