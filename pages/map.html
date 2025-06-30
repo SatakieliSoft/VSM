@@ -3,34 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapa pamiatok</title>
+  <title>Registrované trasy</title>
   <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
   <main>
-    <h1>Pamiatky na trase</h1>
-    <ul id="landmark-list"></ul>
+    <h1>Registrované trasy sv. Martina</h1>
+
+    <ul id="route-list"></ul>
     <p id="error-message" style="display: none;"></p>
     <a href="welcome.html">Späť</a>
   </main>
 
   <script type="module">
-    import { fetchLandmarks } from "../js/map.js";
+    import { fetchRoutes } from "../js/map.js";
     import { showError, clearError } from "../js/utils.js";
 
-    const list = document.getElementById("landmark-list");
+    const list = document.getElementById("route-list");
     const errorMessage = document.getElementById("error-message");
 
-    async function loadLandmarks() {
+    async function loadRoutes() {
       clearError(errorMessage);
 
       try {
-        const landmarks = await fetchLandmarks();
+        const routes = await fetchRoutes();
         list.innerHTML = "";
 
-        landmarks.forEach(landmark => {
+        routes.forEach(route => {
           const li = document.createElement("li");
-          li.textContent = `${landmark.name} (${landmark.typ}) – ${landmark.latitude}, ${landmark.longitude}`;
+          li.innerHTML = `<strong>${route.name}</strong>: ${route.description}`;
           list.appendChild(li);
         });
 
@@ -39,7 +40,7 @@
       }
     }
 
-    loadLandmarks();
+    loadRoutes();
   </script>
 </body>
 </html>
