@@ -1,4 +1,3 @@
-// js/map.js
 import { API_URL } from "./config.js";
 import { getToken } from "./auth.js";
 
@@ -7,9 +6,12 @@ import { getToken } from "./auth.js";
  * @returns {Promise<Array>} pole pamiatok
  */
 export async function fetchLandmarks() {
+  const token = getToken();
+  console.log("🔐 Token pre landmarks:", token);
+
   const response = await fetch(`${API_URL}/landmarks`, {
     headers: {
-      "Authorization": `Bearer ${getToken()}`
+      "Authorization": `Bearer ${token}`
     }
   });
 
@@ -25,15 +27,21 @@ export async function fetchLandmarks() {
  * @returns {Promise<Array>} pole trás
  */
 export async function fetchRoutes() {
+  const token = getToken();
+  console.log("🔐 Token pre routes:", token);
+
   const response = await fetch(`${API_URL}/routes`, {
     headers: {
-      "Authorization": `Bearer ${getToken()}`
+      "Authorization": `Bearer ${token}`
     }
   });
 
   if (!response.ok) {
+    console.error("❌ Chyba z backendu:", response.status, response.statusText);
     throw new Error("Nepodarilo sa načítať trasy.");
   }
 
-  return await response.json();
+  const data = await response.json();
+  console.log("📦 Načítané trasy:", data);
+  return data;
 }
