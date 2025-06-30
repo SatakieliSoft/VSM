@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="sk">
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,7 @@
     <h1>Registrované trasy sv. Martina</h1>
 
     <ul id="route-list"></ul>
-    <p id="error-message" style="display: none;"></p>
+    <p id="error-message" style="display: none; color: red;"></p>
     <a href="welcome.html">Späť</a>
   </main>
 
@@ -24,11 +24,18 @@
 
     async function loadRoutes() {
       clearError(errorMessage);
+      console.log("🔄 Spúšťam loadRoutes()...");
 
       try {
         const routes = await fetchRoutes();
-        list.innerHTML = "";
+        console.log("📦 Trasy zo servera:", routes);
 
+        if (!routes.length) {
+          list.innerHTML = "<li>Žiadne trasy sa nenačítali.</li>";
+          return;
+        }
+
+        list.innerHTML = "";
         routes.forEach(route => {
           const li = document.createElement("li");
           li.innerHTML = `<strong>${route.name}</strong>: ${route.description}`;
@@ -36,7 +43,8 @@
         });
 
       } catch (err) {
-        showError(errorMessage, err.message);
+        console.error("❌ Chyba pri načítaní trás:", err);
+        showError(errorMessage, err.message || "Chyba pri načítaní trás.");
       }
     }
 
