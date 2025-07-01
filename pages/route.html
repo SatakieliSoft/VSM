@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <title>Trasa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/togeojson@0.16.0"></script>
+</head>
+<body>
+  <main>
+    <h1 id="route-title">Načítavam trasu...</h1>
+    <div id="map" style="height: 500px;"></div>
+    <p><a href="map.html">Späť na zoznam</a></p>
+  </main>
+
+  <script type="module">
+    import { API_URL } from "../js/config.js";
+    import { getToken } from "../js/auth.js";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const routeId = urlParams.get("id");
+    const titleEl = document.getElementById("route-title");
+
+    async function loadRoute() {
+      const response = await fetch(`${API_URL}/routes/${routeId}`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`
+        }
+      });
+
+      if (!response.ok) {
+        titleEl.textContent = "Chyba pri načítaní trasy.";
+        return;
+      }
+
+      const route = await response.json();
+      titleEl.textContent = route.name;
+
+      const map = L.map("map").setView([48.7, 18.9], 7);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap"
+      }).addTo(map);
+
+      const gpxUrl = `${API_URL}/static/gpx/${route.gpx_file}`;
+      const gpxResponse = await fetch(gpxUrl);
+      const gpxText = await gpxResponse.text();
+      const parser = new DOMParser();
+      const gpxDoc = parser.parseFromString(gpxText, "application/xml");
+      const geojson = toGeoJSON.gpx(gpxDoc);
+
+      const geoLayer = L.geoJSON(geojson).addTo(map);
+      map.fitBounds(geoLayer.getBounds());
+    }
+
+    loadRoute();
+  </script>
+</body>
+</html>
