@@ -38,11 +38,13 @@
         list.innerHTML = "";
         routes.forEach(route => {
           const li = document.createElement("li");
-          let html = `<strong>${route.name}</strong>: ${route.description || ""}`;
-          if (route.gpx_file) {
-            html += ` – <a href="../gpx/${route.gpx_file}" target="_blank">Stiahnuť GPX</a>`;
-          }
-          li.innerHTML = html;
+
+          // Odkaz na route.html s parametrom GPX súboru
+          const gpxLink = route.gpx_file 
+            ? ` – <a href="route.html?file=${encodeURIComponent(route.gpx_file)}" target="_blank">Zobraziť na mape</a>`
+            : "";
+
+          li.innerHTML = `<a href="route.html?file=${encodeURIComponent(route.gpx_file)}"><strong>${route.name}</strong></a>: ${route.description || ""}${gpxLink}`;
           list.appendChild(li);
         });
 
