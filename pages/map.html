@@ -3,60 +3,102 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registrované trasy</title>
+  <title>Registrované trasy na mape</title>
   <link rel="stylesheet" href="../style.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <style>
+    #map {
+      height: 80vh;
+      width: 100%;
+    }
+    #route-controls {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin: 4px 0;
+    }
+  </style>
 </head>
 <body>
   <main>
     <h1>Registrované trasy sv. Martina</h1>
-
-    <ul id="route-list"></ul>
+    <div id="route-controls"></div>
+    <div id="map"></div>
     <p id="error-message" style="display: none; color: red;"></p>
     <a href="welcome.html">Späť</a>
   </main>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
   <script type="module">
     import { fetchRoutes } from "../js/map.js";
     import { showError, clearError } from "../js/utils.js";
 
-    const list = document.getElementById("route-list");
+    const map = L.map("map").setView([48.7, 19.5], 7);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap prispievatelia",
+    }).addTo(map);
+
+    const controlDiv = document.getElementById("route-controls");
     const errorMessage = document.getElementById("error-message");
+
+    const gpxLayers = {}; // uloženie vrstiev podľa ID
 
     async function loadRoutes() {
       clearError(errorMessage);
-      console.log("🔄 Spúšťam loadRoutes()...");
-
       try {
         const routes = await fetchRoutes();
-        console.log("📦 Trasy zo servera:", routes);
+        console.log("📦 Trasy:", routes);
 
-        if (!routes.length) {
-          list.innerHTML = "<li>Žiadne trasy sa nenačítali.</li>";
-          return;
-        }
+        routes.forEach((route) => {
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.id = `route-${route.id}`;
+          checkbox.dataset.gpx = route.gpx_file;
 
-        list.innerHTML = "";
-        routes.forEach(route => {
-          const li = document.createElement("li");
+          const label = document.createElement("label");
+          label.htmlFor = checkbox.id;
+          label.textContent = route.name;
 
-          const fileNameOnly = route.gpx_file?.split('/').pop(); // napr. via_peregrini.gpx
-          let html = `<a href="route.html?file=${encodeURIComponent(fileNameOnly)}"><strong>${route.name}</strong></a>`;
+          checkbox.addEventListener("change", () => toggleRoute(route));
 
-          if (route.description) {
-            html += `: ${route.description}`;
-          }
-
-          if (fileNameOnly) {
-            html += ` – <a href="route.html?file=${encodeURIComponent(fileNameOnly)}" target="_blank">Zobraziť na mape</a>`;
-          }
-
-          li.innerHTML = html;
-          list.appendChild(li);
+          controlDiv.appendChild(checkbox);
+          controlDiv.appendChild(label);
         });
-
       } catch (err) {
         console.error("❌ Chyba pri načítaní trás:", err);
-        showError(errorMessage, err.message || "Chyba pri načítaní trás.");
+        showError(errorMessage, err.message);
+      }
+    }
+
+    function toggleRoute(route) {
+      const checkbox = document.getElementById(`route-${route.id}`);
+      const gpxPath = `gpx/${route.gpx_file.split("/").pop()}`;
+
+      if (checkbox.checked) {
+        const gpx = new L.GPX(gpxPath, {
+          async: true,
+          marker_options: {
+            startIconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+            endIconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+            shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+          },
+        })
+          .on("loaded", function (e) {
+            map.fitBounds(e.target.getBounds());
+          })
+          .addTo(map);
+
+        gpxLayers[route.id] = gpx;
+      } else {
+        if (gpxLayers[route.id]) {
+          map.removeLayer(gpxLayers[route.id]);
+          delete gpxLayers[route.id];
+        }
       }
     }
 
