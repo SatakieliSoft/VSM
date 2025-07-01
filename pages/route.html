@@ -2,62 +2,61 @@
 <html lang="sk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Trasa sv. Martina</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zobrazenie trasy</title>
 
   <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha512-XQoYMqMTK8LvdlxU8v+6BwN9jQ4JgqT9hxOjrdzszP+8v3Rn3m2n3cQvDbH0J6Gf8Bt+Hu4l7OmlPUz4QG5GkA=="
-    crossorigin=""
   />
 
   <style>
-    body { margin: 0; font-family: sans-serif; }
-    #map { height: 100vh; width: 100vw; }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha512-VHn3N8CH38u8KX0Y1VCfDYZ9tU7Tg5ZQ2TPHQc2yyZ6zSpF/9jx2u/vQUuMTkPM6m7RTeTo/tV+jkDkA1igB0Q=="
-    crossorigin=""
-  ></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Leaflet-GPX Plugin -->
+  <!-- Leaflet GPX plugin -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
 
   <script>
-    function getGPXFromQuery() {
+    function getQueryParam(name) {
       const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('file');
+      return urlParams.get(name);
     }
 
-    const gpxFile = getGPXFromQuery();
-    if (!gpxFile) {
-      alert("❌ Chýba parameter 'file'. Skús ?file=gpx/via_peregrini.gpx");
+    const gpxFileName = getQueryParam("file");
+    if (!gpxFileName) {
+      alert("Chýba názov GPX súboru v URL (?file=...)");
+      throw new Error("Missing ?file parameter");
     }
 
-    const map = L.map('map').setView([48.7, 19.7], 7); // Centrum SR
+    const map = L.map("map").setView([48.7, 19.5], 7);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap prispievatelia',
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '© OpenStreetMap',
     }).addTo(map);
 
-    const gpx = new L.GPX(`../${gpxFile}`, {
+    const gpx = new L.GPX(`../gpx/${gpxFileName}`, {
       async: true,
       marker_options: {
-        startIconUrl: 'https://unpkg.com/leaflet-gpx@1.7.0/pin-icon-start.png',
-        endIconUrl: 'https://unpkg.com/leaflet-gpx@1.7.0/pin-icon-end.png',
-        shadowUrl: 'https://unpkg.com/leaflet-gpx@1.7.0/pin-shadow.png'
+        startIconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        endIconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png"
       }
-    }).on('loaded', function(e) {
-      map.fitBounds(e.target.getBounds());
-    }).addTo(map);
+    })
+      .on("loaded", function (e) {
+        map.fitBounds(e.target.getBounds());
+      })
+      .addTo(map);
   </script>
 </body>
 </html>
