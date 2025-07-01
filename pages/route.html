@@ -36,8 +36,8 @@
       throw new Error("Missing ?file parameter");
     }
 
-    // ✅ Správna cesta pre GitHub Pages – gpx súbory sú v pages/gpx/
-    const gpxPath = `gpx/${gpxFileName}`;
+    // ✅ Pre GitHub Pages musíme použiť úplnú cestu vzhľadom na koreň webu
+    const gpxPath = `./gpx/${gpxFileName}`; // ./gpx pretože sme v adresári /pages/
 
     const map = L.map("map").setView([48.7, 19.5], 7);
 
