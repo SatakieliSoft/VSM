@@ -39,12 +39,16 @@
         routes.forEach(route => {
           const li = document.createElement("li");
 
-          // Odkaz na route.html s parametrom GPX súboru
-          const gpxLink = route.gpx_file 
-            ? ` – <a href="route.html?file=${encodeURIComponent(route.gpx_file)}" target="_blank">Zobraziť na mape</a>`
-            : "";
+          let html = `<a href="route.html?file=${encodeURIComponent(route.gpx_file)}"><strong>${route.name}</strong></a>`;
+          if (route.description) {
+            html += `: ${route.description}`;
+          }
 
-          li.innerHTML = `<a href="route.html?file=${encodeURIComponent(route.gpx_file)}"><strong>${route.name}</strong></a>: ${route.description || ""}${gpxLink}`;
+          if (route.gpx_file) {
+            html += ` – <a href="route.html?file=${encodeURIComponent(route.gpx_file)}" target="_blank">Zobraziť na mape</a>`;
+          }
+
+          li.innerHTML = html;
           list.appendChild(li);
         });
 
