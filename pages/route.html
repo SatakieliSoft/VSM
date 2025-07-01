@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Zobrazenie trasy</title>
 
-  <!-- Leaflet CSS bez integrity -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
@@ -36,8 +36,8 @@
       throw new Error("Missing ?file parameter");
     }
 
-    // Cesta k súboru musí byť správna pre GitHub Pages
-    const gpxPath = `../gpx/${gpxFileName}`;
+    // ✅ Správna cesta pre GitHub Pages – gpx súbory sú v pages/gpx/
+    const gpxPath = `gpx/${gpxFileName}`;
 
     const map = L.map("map").setView([48.7, 19.5], 7);
 
