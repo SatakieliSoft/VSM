@@ -3,32 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registrované trasy na mape</title>
+  <title>Registrované trasy</title>
+
   <link rel="stylesheet" href="../style.css" />
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <style>
-    #map {
-      height: 80vh;
-      width: 100%;
-    }
-    #route-controls {
-      margin-bottom: 1rem;
-    }
-    label {
-      display: block;
-      margin: 4px 0;
-    }
+    #map { height: 500px; width: 100%; display: none; margin-top: 1em; }
+    #route-info { display: none; margin-top: 1em; }
+    .view-toggle button { margin-right: 1em; }
+    .active-btn { font-weight: bold; background: #e6e6e6; }
   </style>
 </head>
 <body>
   <main>
     <h1>Registrované trasy sv. Martina</h1>
-    <div id="route-controls"></div>
+
+    <div class="view-toggle">
+      <button id="btn-map" class="active-btn">🗺️ Mapa</button>
+      <button id="btn-info">📋 Zoznam trás</button>
+    </div>
+
+    <!-- 📋 Info o trasách -->
+    <div id="route-info">
+      <table border="1" cellpadding="6">
+        <thead>
+          <tr><th>Názov</th><th>Popis</th><th>Vzdialenosť</th><th>Prevýšenie</th></tr>
+        </thead>
+        <tbody id="route-table-body"></tbody>
+      </table>
+    </div>
+
+    <!-- 🗺️ Mapa -->
     <div id="map"></div>
-    <p id="error-message" style="display: none; color: red;"></p>
+    <div id="route-selector">
+      <label><input type="checkbox" value="via_peregrini.gpx" checked> Via Peregrini</label><br>
+      <label><input type="checkbox" value="via_insula_magna.gpx"> Via Insula Magna</label><br>
+      <label><input type="checkbox" value="dsz.gpx"> Trasa Dolný Štál – Zemné</label>
+    </div>
+
     <a href="welcome.html">Späť</a>
   </main>
 
@@ -36,73 +49,94 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
   <script type="module">
     import { fetchRoutes } from "../js/map.js";
-    import { showError, clearError } from "../js/utils.js";
 
-    const map = L.map("map").setView([48.7, 19.5], 7);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap prispievatelia",
-    }).addTo(map);
+    const btnMap = document.getElementById("btn-map");
+    const btnInfo = document.getElementById("btn-info");
+    const mapDiv = document.getElementById("map");
+    const infoDiv = document.getElementById("route-info");
+    const selector = document.getElementById("route-selector");
+    const tableBody = document.getElementById("route-table-body");
 
-    const controlDiv = document.getElementById("route-controls");
-    const errorMessage = document.getElementById("error-message");
+    let map, layers = [];
 
-    const gpxLayers = {}; // uloženie vrstiev podľa ID
+    // Prepínanie zobrazení
+    btnMap.addEventListener("click", () => {
+      btnMap.classList.add("active-btn");
+      btnInfo.classList.remove("active-btn");
+      mapDiv.style.display = "block";
+      selector.style.display = "block";
+      infoDiv.style.display = "none";
+      showMap();
+    });
 
-    async function loadRoutes() {
-      clearError(errorMessage);
-      try {
-        const routes = await fetchRoutes();
-        console.log("📦 Trasy:", routes);
+    btnInfo.addEventListener("click", async () => {
+      btnInfo.classList.add("active-btn");
+      btnMap.classList.remove("active-btn");
+      mapDiv.style.display = "none";
+      selector.style.display = "none";
+      infoDiv.style.display = "block";
+      loadRouteInfo();
+    });
 
-        routes.forEach((route) => {
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.id = `route-${route.id}`;
-          checkbox.dataset.gpx = route.gpx_file;
-
-          const label = document.createElement("label");
-          label.htmlFor = checkbox.id;
-          label.textContent = route.name;
-
-          checkbox.addEventListener("change", () => toggleRoute(route));
-
-          controlDiv.appendChild(checkbox);
-          controlDiv.appendChild(label);
-        });
-      } catch (err) {
-        console.error("❌ Chyba pri načítaní trás:", err);
-        showError(errorMessage, err.message);
+    // Zobrazenie trás na mape
+    function showMap() {
+      if (!map) {
+        map = L.map("map").setView([48.7, 19.5], 7);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap"
+        }).addTo(map);
       }
-    }
 
-    function toggleRoute(route) {
-      const checkbox = document.getElementById(`route-${route.id}`);
-      const gpxPath = `gpx/${route.gpx_file.split("/").pop()}`;
+      clearMap();
 
-      if (checkbox.checked) {
-        const gpx = new L.GPX(gpxPath, {
+      const checkboxes = selector.querySelectorAll("input[type=checkbox]:checked");
+      const boundsGroup = [];
+
+      checkboxes.forEach(cb => {
+        const path = `gpx/${cb.value}`;
+        const gpxLayer = new L.GPX(path, {
           async: true,
           marker_options: {
             startIconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
             endIconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-            shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-          },
-        })
-          .on("loaded", function (e) {
-            map.fitBounds(e.target.getBounds());
-          })
-          .addTo(map);
-
-        gpxLayers[route.id] = gpx;
-      } else {
-        if (gpxLayers[route.id]) {
-          map.removeLayer(gpxLayers[route.id]);
-          delete gpxLayers[route.id];
-        }
-      }
+            shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png"
+          }
+        }).on("loaded", e => {
+          boundsGroup.push(e.target.getBounds());
+          if (boundsGroup.length === checkboxes.length) {
+            const fullBounds = boundsGroup.reduce((acc, b) => acc.extend(b), boundsGroup[0]);
+            map.fitBounds(fullBounds);
+          }
+        }).addTo(map);
+        layers.push(gpxLayer);
+      });
     }
 
-    loadRoutes();
+    function clearMap() {
+      layers.forEach(l => map.removeLayer(l));
+      layers = [];
+    }
+
+    selector.addEventListener("change", showMap);
+
+    // Načítanie údajov do tabuľky
+    async function loadRouteInfo() {
+      tableBody.innerHTML = "";
+      const routes = await fetchRoutes();
+      routes.forEach(r => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><strong>${r.name}</strong></td>
+          <td>${r.description || "-"}</td>
+          <td>${r.distance || "–"} km</td>
+          <td>${r.elevation || "–"} m</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Inicializácia – predvolene zobraziť mapu
+    showMap();
   </script>
 </body>
 </html>
