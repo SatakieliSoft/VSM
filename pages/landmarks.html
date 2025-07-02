@@ -8,7 +8,10 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     #map { height: 60vh; margin-top: 1rem; }
+    #info { margin-top: 1rem; background: #f5f5f5; padding: 1rem; border-radius: 8px; }
     label { display: block; margin: 0.3em 0; }
+    .landmark-block { margin-bottom: 1em; border-bottom: 1px solid #ccc; padding-bottom: 0.5em; }
+    .landmark-block h3 { margin: 0.2em 0; font-size: 1.1em; }
   </style>
 </head>
 <body>
@@ -16,6 +19,7 @@
     <h1>Pamiatky sv. Martina</h1>
     <div id="controls"></div>
     <div id="map"></div>
+    <div id="info"></div>
     <p><a href="welcome.html">Späť</a></p>
   </main>
 
@@ -25,6 +29,7 @@
     import { showError, clearError } from "../js/utils.js";
 
     const controls = document.getElementById("controls");
+    const info = document.getElementById("info");
     const map = L.map("map").setView([48.7, 19.5], 7);
     const layerGroup = L.layerGroup().addTo(map);
     const boundsGroup = [];
@@ -44,7 +49,7 @@
           checkbox.dataset.lat = l.latitude;
           checkbox.dataset.lng = l.longitude;
           checkbox.dataset.name = l.name;
-          checkbox.dataset.poloha = l.poloha || ""; // 👈 ak je dostupná
+          checkbox.dataset.poloha = l.poloha || "";
           checkbox.dataset.description = l.description || "";
 
           const label = document.createElement("label");
@@ -55,6 +60,7 @@
           checkbox.addEventListener("change", () => {
             layerGroup.clearLayers();
             boundsGroup.length = 0;
+            info.innerHTML = "";
 
             document.querySelectorAll("input[type=checkbox]:checked").forEach(cb => {
               const lat = parseFloat(cb.dataset.lat);
@@ -63,15 +69,18 @@
               const mesto = cb.dataset.poloha;
               const desc = cb.dataset.description;
 
-              const popupContent = `
-                <strong>${name}</strong><br/>
-                <em>${mesto}</em><br/>
-                ${desc || ""}
-              `;
-
-              const marker = L.marker([lat, lng]).bindPopup(popupContent);
+              const marker = L.marker([lat, lng]);
               layerGroup.addLayer(marker);
               boundsGroup.push([lat, lng]);
+
+              const block = document.createElement("div");
+              block.classList.add("landmark-block");
+              block.innerHTML = `
+                <h3>${name}</h3>
+                <p><em>${mesto}</em></p>
+                <p>${desc}</p>
+              `;
+              info.appendChild(block);
             });
 
             if (boundsGroup.length) {
