@@ -1,5 +1,4 @@
-import { API_URL } from "./config.js";
-import { getToken } from "./auth.js";
+import { fetchLandmarks } from "./map.js";
 import { showError, clearError } from "./utils.js";
 
 const listEl = document.getElementById("landmark-list");
@@ -11,14 +10,6 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 const markers = [];
-
-async function fetchLandmarks() {
-  const response = await fetch(`${API_URL}/landmarks`, {
-    headers: { Authorization: `Bearer ${getToken()}` }
-  });
-  if (!response.ok) throw new Error("Nepodarilo sa načítať pamiatky.");
-  return await response.json();
-}
 
 function toggleLandmark(landmark, checked) {
   if (checked) {
