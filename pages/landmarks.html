@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pamiatky sv. Martina</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 60vh; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Pamiatky sv. Martina</h1>
+
+    <ul id="landmark-list"></ul>
+
+    <div id="map"></div>
+    <p id="error-message" style="color: red; display: none;"></p>
+    <a href="welcome.html">Späť</a>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="../js/landmarks.js"></script>
+</body>
+</html>
