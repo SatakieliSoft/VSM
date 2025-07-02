@@ -30,7 +30,7 @@
     const boundsGroup = [];
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '© OpenStreetMap'
+      attribution: '© OpenStreetMap prispievatelia'
     }).addTo(map);
 
     async function loadLandmarks() {
@@ -44,7 +44,8 @@
           checkbox.dataset.lat = l.latitude;
           checkbox.dataset.lng = l.longitude;
           checkbox.dataset.name = l.name;
-          checkbox.dataset.description = l.description;
+          checkbox.dataset.poloha = l.poloha || ""; // 👈 ak je dostupná
+          checkbox.dataset.description = l.description || "";
 
           const label = document.createElement("label");
           label.appendChild(checkbox);
@@ -59,9 +60,16 @@
               const lat = parseFloat(cb.dataset.lat);
               const lng = parseFloat(cb.dataset.lng);
               const name = cb.dataset.name;
+              const mesto = cb.dataset.poloha;
               const desc = cb.dataset.description;
 
-              const marker = L.marker([lat, lng]).bindPopup(`<strong>${name}</strong><br>${desc}`);
+              const popupContent = `
+                <strong>${name}</strong><br/>
+                <em>${mesto}</em><br/>
+                ${desc || ""}
+              `;
+
+              const marker = L.marker([lat, lng]).bindPopup(popupContent);
               layerGroup.addLayer(marker);
               boundsGroup.push([lat, lng]);
             });
