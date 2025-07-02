@@ -49,7 +49,7 @@
           checkbox.dataset.lat = l.latitude;
           checkbox.dataset.lng = l.longitude;
           checkbox.dataset.name = l.name;
-          checkbox.dataset.poloha = l.poloha || "";
+          checkbox.dataset.poloha = l.poloha || l.location || "";
           checkbox.dataset.description = l.description || "";
 
           const label = document.createElement("label");
