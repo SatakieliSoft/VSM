@@ -32,3 +32,11 @@ export async function loginUser(email, password) {
 export function getToken() {
   return localStorage.getItem("token");
 }
+
+/**
+ * Odhlási používateľa – zmaže token a presmeruje na prihlasovaciu stránku.
+ */
+export function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/VSM/pages/login.html"; // upravená cesta pre GitHub Pages
+}
