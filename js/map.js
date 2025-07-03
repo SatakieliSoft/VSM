@@ -1,4 +1,4 @@
-nemal by byt kod takto ? import { API_URL } from "./config.js";
+import { API_URL } from "./config.js";
 import { getToken } from "./auth.js";
 
 /**
