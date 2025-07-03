@@ -12,7 +12,17 @@
     label { display: block; margin: 0.3em 0; }
     .landmark-block { margin-bottom: 1em; border-bottom: 1px solid #ccc; padding-bottom: 0.5em; }
     .landmark-block h3 { margin: 0.2em 0; font-size: 1.1em; }
-    .visit-btn { margin-top: 0.5em; display: inline-block; background: #007BFF; color: white; border: none; padding: 0.3em 0.6em; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+    .visit-btn {
+      margin-top: 0.5em;
+      display: inline-block;
+      background: #007BFF;
+      color: white;
+      border: none;
+      padding: 0.3em 0.6em;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
   </style>
 </head>
 <body>
@@ -32,6 +42,8 @@
     const controls = document.getElementById("controls");
     const info = document.getElementById("info");
     const map = L.map("map").setView([48.7, 19.5], 7);
+    window.map = map; // dôležité pre globálny prístup
+
     const layerGroup = L.layerGroup().addTo(map);
     const boundsGroup = [];
 
@@ -60,6 +72,15 @@
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
         const distance = getDistance(userLat, userLng, landmark.latitude, landmark.longitude);
+
+        // Vždy zobrazíme aktuálnu polohu ako bod
+        const userMarker = L.circleMarker([userLat, userLng], {
+          radius: 6,
+          color: "red",
+          fillColor: "#f03",
+          fillOpacity: 0.8
+        }).bindPopup("Tvoja poloha").addTo(map);
+        layerGroup.addLayer(userMarker);
 
         if (distance <= 50) {
           try {
@@ -135,7 +156,11 @@
               info.appendChild(block);
 
               block.querySelector(".visit-btn").addEventListener("click", () => {
-                overitNavstevu({ id: parseInt(cb.id.split("-")[1]), latitude: lat, longitude: lng });
+                overitNavstevu({
+                  id: parseInt(cb.id.split("-")[1]),
+                  latitude: lat,
+                  longitude: lng
+                });
               });
             });
 
