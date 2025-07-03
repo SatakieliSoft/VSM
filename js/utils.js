@@ -1,157 +1,43 @@
-<!DOCTYPE html>
-<html lang="sk">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pamiatky sv. Martina</title>
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    #map { height: 60vh; margin-top: 1rem; }
-    #info { margin-top: 1rem; background: #f5f5f5; padding: 1rem; border-radius: 8px; }
-    label { display: block; margin: 0.3em 0; }
-    .landmark-block { margin-bottom: 1em; border-bottom: 1px solid #ccc; padding-bottom: 0.5em; }
-    .landmark-block h3 { margin: 0.2em 0; font-size: 1.1em; }
-    .visit-btn { margin-top: 0.5em; display: inline-block; background: #007BFF; color: white; border: none; padding: 0.3em 0.6em; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
-  </style>
-</head>
-<body>
-  <main>
-    <h1>Pamiatky sv. Martina</h1>
-    <div id="controls"></div>
-    <div id="map"></div>
-    <div id="info"></div>
-    <p><a href="welcome.html">Späť</a></p>
-  </main>
+/**
+ * Zobrazí chybovú správu v zadanom elemente
+ * @param {HTMLElement} element - Kam vložiť hlášku
+ * @param {string} message - Zobrazovaný text
+ */
+export function showError(element, message) {
+  element.textContent = message;
+  element.style.color = "red";
+  element.style.display = "block";
+}
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module">
-    import { fetchLandmarks } from "../js/map.js";
-    import { showError, clearError, getToken } from "../js/utils.js";
+/**
+ * Vymaže obsah a skryje hlášku
+ * @param {HTMLElement} element 
+ */
+export function clearError(element) {
+  element.textContent = "";
+  element.style.display = "none";
+}
 
-    const controls = document.getElementById("controls");
-    const info = document.getElementById("info");
-    const map = L.map("map").setView([48.7, 19.5], 7);
-    const layerGroup = L.layerGroup().addTo(map);
-    const boundsGroup = [];
+/**
+ * Zistí, či je používateľ prihlásený
+ * @returns {boolean}
+ */
+export function isLoggedIn() {
+  return !!localStorage.getItem("token");
+}
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '© OpenStreetMap prispievatelia'
-    }).addTo(map);
+/**
+ * Odhlási používateľa a presmeruje na login
+ */
+export function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/pages/login.html";
+}
 
-    function getDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371e3;
-      const φ1 = lat1 * Math.PI / 180;
-      const φ2 = lat2 * Math.PI / 180;
-      const Δφ = (lat2 - lat1) * Math.PI / 180;
-      const Δλ = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-
-    async function overitNavstevu(landmark) {
-      if (!navigator.geolocation) {
-        alert("Tvoj prehliadač nepodporuje geolokáciu.");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const userLat = position.coords.latitude;
-        const userLng = position.coords.longitude;
-        const distance = getDistance(userLat, userLng, landmark.latitude, landmark.longitude);
-
-        if (distance <= 50) {
-          try {
-            const res = await fetch("https://vsm-backend-ev1o.onrender.com/visited/", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${getToken()}`
-              },
-              body: JSON.stringify({ landmark_id: landmark.id })
-            });
-
-            if (res.ok) {
-              alert("✅ Návšteva bola úspešne zaznamenaná.");
-            } else if (res.status === 400) {
-              alert("ℹ️ Túto pamiatku si už navštívil/a.");
-            } else {
-              alert("❌ Nepodarilo sa uložiť návštevu.");
-            }
-          } catch (err) {
-            alert("❌ Chyba pri odosielaní požiadavky.");
-            console.error(err);
-          }
-        } else {
-          alert("🛑 Nie si dostatočne blízko pamiatky. (Min. 50 metrov)");
-        }
-      }, () => alert("❌ Nepodarilo sa získať polohu."));
-    }
-
-    async function loadLandmarks() {
-      try {
-        const landmarks = await fetchLandmarks();
-
-        landmarks.forEach(l => {
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.id = `lm-${l.id}`;
-          checkbox.dataset.lat = l.latitude;
-          checkbox.dataset.lng = l.longitude;
-          checkbox.dataset.name = l.name;
-          checkbox.dataset.poloha = l.poloha || l.location || "";
-          checkbox.dataset.description = l.description || "";
-
-          const label = document.createElement("label");
-          label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(` ${l.name}`));
-          controls.appendChild(label);
-
-          checkbox.addEventListener("change", () => {
-            layerGroup.clearLayers();
-            boundsGroup.length = 0;
-            info.innerHTML = "";
-
-            document.querySelectorAll("input[type=checkbox]:checked").forEach(cb => {
-              const lat = parseFloat(cb.dataset.lat);
-              const lng = parseFloat(cb.dataset.lng);
-              const name = cb.dataset.name;
-              const mesto = cb.dataset.poloha;
-              const desc = cb.dataset.description;
-
-              const marker = L.marker([lat, lng]);
-              layerGroup.addLayer(marker);
-              boundsGroup.push([lat, lng]);
-
-              const block = document.createElement("div");
-              block.classList.add("landmark-block");
-              block.innerHTML = `
-                <h3>${name}</h3>
-                <p><em>${mesto}</em></p>
-                <p>${desc}</p>
-                <button class="visit-btn">Overiť návštevu</button>
-              `;
-              info.appendChild(block);
-
-              block.querySelector(".visit-btn").addEventListener("click", () => {
-                overitNavstevu({ id: parseInt(cb.id.split("-")[1]), latitude: lat, longitude: lng });
-              });
-            });
-
-            if (boundsGroup.length) {
-              map.fitBounds(boundsGroup, { padding: [20, 20] });
-            }
-          });
-        });
-
-      } catch (err) {
-        controls.innerHTML = `<p style="color:red;">Nepodarilo sa načítať pamiatky.</p>`;
-        console.error(err);
-      }
-    }
-
-    loadLandmarks();
-  </script>
-</body>
-</html>
+/**
+ * Získa token z localStorage
+ * @returns {string|null}
+ */
+export function getToken() {
+  return localStorage.getItem("token");
+}
