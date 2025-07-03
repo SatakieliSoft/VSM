@@ -1,6 +1,4 @@
-// js/map.js
-
-import { API_URL } from "./config.js";
+nemal by byt kod takto ? import { API_URL } from "./config.js";
 import { getToken } from "./auth.js";
 
 /**
@@ -9,6 +7,7 @@ import { getToken } from "./auth.js";
  */
 export async function fetchLandmarks() {
   const token = getToken();
+  console.log("🔐 Token pre landmarks:", token);
 
   const response = await fetch(`${API_URL}/landmarks/`, {
     headers: {
@@ -17,8 +16,35 @@ export async function fetchLandmarks() {
   });
 
   if (!response.ok) {
+    console.error("❌ Chyba z backendu:", response.status, response.statusText);
     throw new Error("Nepodarilo sa načítať pamiatky.");
   }
 
-  return await response.json();
+  const data = await response.json();
+  console.log("📦 Načítané pamiatky:", data);
+  return data;
+}
+
+/**
+ * Načíta všetky trasy z API
+ * @returns {Promise<Array>} pole trás
+ */
+export async function fetchRoutes() {
+  const token = getToken();
+  console.log("🔐 Token pre routes:", token);
+
+  const response = await fetch(`${API_URL}/routes/`, {   // ← Dôležitá lomka na konci
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    console.error("❌ Chyba z backendu:", response.status, response.statusText);
+    throw new Error("Nepodarilo sa načítať trasy.");
+  }
+
+  const data = await response.json();
+  console.log("📦 Načítané trasy:", data);
+  return data;
 }
